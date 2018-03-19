@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Transactions;
 using EFTransactionsExample.EFPaginationExample;
 using EFTransactionsExample.Models.EFPaginationExample.Models;
 
@@ -41,6 +42,31 @@ namespace EFTransactionsExample.Repositories
                         Console.WriteLine("Adding Rollback");
                     }
                 }
+            }
+        }
+
+        public void AddInTransactionScope(List<Person> entities)
+        {
+            using (var scope = new TransactionScope())
+            {
+                using (var context = new EfContext())
+                {
+                    try
+                    {
+                        foreach (var entity in entities)
+                        {
+                            context.Persons.Add(entity);
+                        }
+                        context.SaveChanges();
+                        Console.WriteLine("Adding Commit");
+                    }
+                    catch
+                    {
+                        scope.Dispose();
+                        Console.WriteLine("Adding Rollback");
+                    }
+                }
+                scope.Complete();
             }
         }
 
